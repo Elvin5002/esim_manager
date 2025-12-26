@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:esim_manager/esim_manager_platform_interface.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -21,6 +23,7 @@ class _MyAppState extends State<MyApp> {
   String _platformVersion = 'Unknown';
   bool _isEsimSupported = false;
   final _esimManagerPlugin = EsimManager();
+  String status = 'Idle';
 
   final TextEditingController _activationController = TextEditingController();
   final TextEditingController _smdpController = TextEditingController();
@@ -88,6 +91,27 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _platformVersion = platformVersion;
     });
+  }
+
+  Future<void> _install() async {
+    final code = _activationController.text.trim();
+    if (code.isEmpty) {
+      setState(() => status = 'Activation code is empty');
+      return;
+    }
+
+    setState(() => status = 'Starting install…');
+
+    if (Platform.isIOS) {
+      final ok = await _esimManagerPlugin.installIosViaLpa(code);
+      setState(() => status = ok
+          ? 'Redirected to iOS eSIM installer'
+          : 'Failed to open iOS installer');
+      return;
+    }
+
+    final res = await _esimManagerPlugin.installFromActivationCode(code);
+    setState(() => status = '${res.status}: ${res.message ?? ''}');
   }
 
   Future<void> checkEsimSupport() async {
@@ -165,6 +189,17 @@ class _MyAppState extends State<MyApp> {
                 child: const Text('Install from SM‑DP+')
               ),
               const SizedBox(height: 12),
+              TextField(
+                controller: _activationController,
+                decoration: const InputDecoration(
+                  labelText: 'Activation code / LPA string',
+                ),
+              ),
+              const SizedBox(height: 12),
+              ElevatedButton(
+                onPressed: _install,
+                child: const Text('Install eSIM'),
+              ),
 
               // Parsed install result panel
               Card(
