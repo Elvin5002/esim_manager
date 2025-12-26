@@ -1,7 +1,9 @@
 name: esim_manager
-description: "A new Flutter plugin project."
+description: Flutter plugin to check eSIM support and install eSIM using system flows.
 version: 0.0.1
-homepage:
+
+homepage: https://github.com/elvin5002/esim_manager
+repository: https://github.com/elvin5002/esim_manager
 
 environment:
   sdk: ^3.10.4
