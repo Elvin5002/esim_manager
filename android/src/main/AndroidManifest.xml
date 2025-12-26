@@ -1,0 +1,7 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.example.esim_manager">
+
+    <!-- Optional: document the WRITE_EMBEDDED_SUBSCRIPTIONS permission which is required for some eSIM operations. -->
+    <uses-permission android:name="android.permission.WRITE_EMBEDDED_SUBSCRIPTIONS" />
+
+</manifest>
