@@ -1,6 +1,6 @@
 name: esim_manager
 description: Flutter plugin to check eSIM support and install eSIM using system flows.
-version: 0.0.3
+version: 0.0.4
 
 homepage: https://github.com/Elvin5002/esim_manager.git
 repository: https://github.com/Elvin5002/esim_manager.git
@@ -41,7 +41,6 @@ flutter:
         package: com.example.esim_manager
       ios:
         pluginClass: EsimManagerPlugin
-        dartPluginClass: EsimManagerPlugin
 
   # To add assets to your plugin package, add an assets section, like this:
   # assets:

@@ -1,3 +1,6 @@
+## 0.0.4
+- Fixed iOS plugin registration issue (removed invalid dartPluginClass)
+
 ## 0.0.3
 - Fixed iOS CocoaPods integration by adding missing podspec
 - Improved iOS plugin structure and stability
