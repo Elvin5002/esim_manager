@@ -1,3 +1,10 @@
+## 0.0.5
+- Unified install API to `installEsim(lpa)` across Android and iOS
+- Android native install now accepts `lpa` argument and opens system eSIM setup link
+- iOS native install now accepts `lpa` argument (with backward-compatible fallbacks)
+- Updated example app to use LPA-based install flow with sample LPA string
+- Updated README to reflect unified install flow and latest usage
+
 ## 0.0.4
 - Fixed iOS plugin registration issue (removed invalid dartPluginClass)
 

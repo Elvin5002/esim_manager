@@ -68,39 +68,15 @@ class MethodChannelEsimManager extends EsimManagerPlatform {
   }
 
   @override
-  Future<InstallResult> installFromActivationCode(String activationCode) async {
+  Future<bool> installEsim(String lpa) async {
     try {
-      final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
-        'installFromActivationCode',
-        <String, dynamic>{'activationCode': activationCode},
+      final result = await methodChannel.invokeMethod<bool>(
+        'installEsim',
+        <String, dynamic>{'lpa': lpa},
       );
-      if (result == null) return InstallResult(status: InstallStatus.failed, message: 'No response from platform');
-      return InstallResult.fromMap(result);
+      return result == true;
     } on PlatformException catch (e) {
-      return InstallResult(status: InstallStatus.failed, message: e.message ?? e.code);
-    }
-  }
-
-  @override
-  Future<InstallResult> installFromSmDp(String smDpUrl, {String? confirmationCode}) async {
-    try {
-      final result = await methodChannel.invokeMethod<Map<dynamic, dynamic>>(
-        'installFromSmDp',
-        <String, dynamic>{'smdpUrl': smDpUrl, 'confirmationCode': confirmationCode},
-      );
-      if (result == null) return InstallResult(status: InstallStatus.failed, message: 'No response from platform');
-      return InstallResult.fromMap(result);
-    } on PlatformException catch (e) {
-      return InstallResult(status: InstallStatus.failed, message: e.message ?? e.code);
-    }
-  }
-
-  @override
-  Future<bool> installIosViaLpa(String lpaString) async {
-    try {
-      final launched = await methodChannel.invokeMethod<bool>('installIosViaLpa', <String, dynamic>{'lpaString': lpaString});
-      return launched == true;
-    } on PlatformException {
+      print('eSIM install error: ${e.message}');
       return false;
     }
   }

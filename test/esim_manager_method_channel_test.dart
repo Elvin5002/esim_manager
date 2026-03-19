@@ -97,17 +97,6 @@ void main() {
     expect(profiles.first.isActive, isTrue);
   });
 
-  test('installFromActivationCode returns success InstallResult', () async {
-    final res = await platform.installFromActivationCode('code');
-    expect(res.status, InstallStatus.success);
-    expect(res.profileId, 'p3');
-  });
-
-  test('installFromSmDp returns pending InstallResult', () async {
-    final res = await platform.installFromSmDp('https://smdp');
-    expect(res.status, InstallStatus.pending);
-  });
-
   test('installIosViaLpa returns true (simulated)', () async {
     final launched = await platform.installIosViaLpa('some-lpa-string');
     expect(launched, isTrue);

@@ -161,14 +161,11 @@ abstract class EsimManagerPlatform extends PlatformInterface {
     throw UnimplementedError('listProfiles() has not been implemented.');
   }
 
-  /// Installs a profile using an activation code (e.g., SM-DP+ activation code or QR content depending on platform).
-  Future<InstallResult> installFromActivationCode(String activationCode) {
-    throw UnimplementedError('installFromActivationCode() has not been implemented.');
-  }
-
-  /// Installs a profile using an SM‑DP+ URL and optional confirmation/activation code.
-  Future<InstallResult> installFromSmDp(String smDpUrl, {String? confirmationCode}) {
-    throw UnimplementedError('installFromSmDp() has not been implemented.');
+  /// Installs an eSIM profile.
+  /// On Android: lpa is the LPA code/string
+  /// On iOS: lpa is the LPA code/string for universal link provisioning
+  Future<bool> installEsim(String lpa) {
+    throw UnimplementedError('installEsim() has not been implemented.');
   }
 
   /// Removes an installed profile by id.

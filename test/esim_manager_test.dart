@@ -25,18 +25,6 @@ class MockEsimManagerPlatform
   ]);
 
   @override
-  Future<InstallResult> installFromActivationCode(String activationCode) =>
-      Future.value(
-        InstallResult(status: InstallStatus.success, profileId: 'p1'),
-      );
-
-  @override
-  Future<InstallResult> installFromSmDp(
-    String smDpUrl, {
-    String? confirmationCode,
-  }) => Future.value(InstallResult(status: InstallStatus.pending));
-
-  @override
   Future<bool> removeProfile(String profileId) => Future.value(true);
 
   @override
@@ -51,19 +39,16 @@ class MockEsimManagerPlatform
   );
 
   @override
-  // TODO: implement onInstallResult
-  Stream<Map<String, dynamic>> get onInstallResult =>
-      throw UnimplementedError();
+  Stream<Map<String, dynamic>> get onInstallResult => Stream.empty();
 
   @override
-  Future<bool> installIosViaLpa(String lpaString) {
-    // TODO: implement installIosViaLpa
-    throw UnimplementedError();
-  }
+  Future<bool> installIosViaLpa(String lpaString) => Future.value(true);
   
   @override
-  // TODO: implement installEvents
-  Stream<InstallEvent> get installEvents => throw UnimplementedError();
+  Stream<InstallEvent> get installEvents => Stream.empty();
+  
+  @override
+  Future<bool> installEsim(String lpa) => Future.value(true);
 }
 
 void main() {
@@ -97,5 +82,13 @@ void main() {
     final profiles = await esimManagerPlugin.listProfiles();
     expect(profiles, hasLength(1));
     expect(profiles.first.id, 'p1');
+  });
+
+  test('installEsim delegates to platform', () async {
+    EsimManager esimManagerPlugin = EsimManager();
+    MockEsimManagerPlatform fakePlatform = MockEsimManagerPlatform();
+    EsimManagerPlatform.instance = fakePlatform;
+
+    expect(await esimManagerPlugin.installEsim('test-activation-code'), isTrue);
   });
 }

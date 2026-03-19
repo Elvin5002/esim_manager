@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:esim_manager/esim_manager_platform_interface.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -25,12 +23,14 @@ class _MyAppState extends State<MyApp> {
   final _esimManagerPlugin = EsimManager();
   String status = 'Idle';
 
-  final TextEditingController _activationController = TextEditingController();
-  final TextEditingController _smdpController = TextEditingController();
+  final TextEditingController _lpaController = TextEditingController();
   final List<String> _logs = <String>[];
   InstallResult? _lastParsedInstall;
   Map<String, dynamic>? _lastRawInstallPayload;
   StreamSubscription<Map<String, dynamic>>? _installSub;
+
+    static const String _exampleLpa =
+      'LPA:1\$SMDP.GSMA.COM\$ABC1234567890';
 
   @override
   void initState() {
@@ -66,8 +66,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void dispose() {
     _installSub?.cancel();
-    _activationController.dispose();
-    _smdpController.dispose();
+    _lpaController.dispose();
     super.dispose();
   }
 
@@ -93,25 +92,26 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  Future<void> _install() async {
-    final code = _activationController.text.trim();
-    if (code.isEmpty) {
-      setState(() => status = 'Activation code is empty');
+  Future<void> _installEsim() async {
+    final lpa = _lpaController.text.trim();
+    if (lpa.isEmpty) {
+      setState(() => status = 'LPA string is empty');
       return;
     }
 
     setState(() => status = 'Starting install…');
+    final ok = await _esimManagerPlugin.installEsim(lpa);
+    setState(() {
+      status = ok
+          ? 'Installer opened successfully'
+          : 'Failed to open installer';
+    });
+    addLog('installEsim(lpa) => $ok');
+  }
 
-    if (Platform.isIOS) {
-      final ok = await _esimManagerPlugin.installIosViaLpa(code);
-      setState(() => status = ok
-          ? 'Redirected to iOS eSIM installer'
-          : 'Failed to open iOS installer');
-      return;
-    }
-
-    final res = await _esimManagerPlugin.installFromActivationCode(code);
-    setState(() => status = '${res.status}: ${res.message ?? ''}');
+  void _fillExampleLpa() {
+    _lpaController.text = _exampleLpa;
+    addLog('Example LPA inserted');
   }
 
   Future<void> checkEsimSupport() async {
@@ -130,114 +130,88 @@ class _MyAppState extends State<MyApp> {
           title: const Text('Plugin example app'),
         ),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text('Running on: $_platformVersion\n'),
-              Text('eSIM supported: \\${_isEsimSupported ? 'yes' : 'no'}'),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: checkEsimSupport,
-                child: const Text('Check eSIM support'),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                key: const Key('activationCode'),
-                decoration: const InputDecoration(labelText: 'Activation code'),
-                controller: _activationController,
-              ),
-              const SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: () async {
-                  final code = _activationController.text.trim();
-                  if (code.isEmpty) {
-                    addLog('Activation code empty');
-                    return;
-                  }
-                  addLog('Starting install from activation code...');
-                  try {
-                    final res = await _esimManagerPlugin.installFromActivationCode(code);
-                    addLog('Install started: ${res.status} ${res.message ?? ''} profileId=${res.profileId ?? ''}');
-                  } catch (e) {
-                    addLog('Error starting install: $e');
-                  }
-                },
-                child: const Text('Install from activation code')
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                key: const Key('smdpUrl'),
-                decoration: const InputDecoration(labelText: 'SM‑DP+ URL'),
-                controller: _smdpController,
-              ),
-              const SizedBox(height: 8),
-              ElevatedButton(
-                onPressed: () async {
-                  final url = _smdpController.text.trim();
-                  if (url.isEmpty) {
-                    addLog('SM‑DP+ URL empty');
-                    return;
-                  }
-                  addLog('Starting install from SM‑DP+...');
-                  try {
-                    final res = await _esimManagerPlugin.installFromSmDp(url);
-                    addLog('Install started: ${res.status} ${res.message ?? ''} profileId=${res.profileId ?? ''}');
-                  } catch (e) {
-                    addLog('Error starting SM‑DP+ install: $e');
-                  }
-                },
-                child: const Text('Install from SM‑DP+')
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _activationController,
-                decoration: const InputDecoration(
-                  labelText: 'Activation code / LPA string',
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Running on: $_platformVersion'),
+                const SizedBox(height: 6),
+                Text('eSIM supported: ${_isEsimSupported ? 'yes' : 'no'}'),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: checkEsimSupport,
+                  child: const Text('Check eSIM support'),
                 ),
-              ),
-              const SizedBox(height: 12),
-              ElevatedButton(
-                onPressed: _install,
-                child: const Text('Install eSIM'),
-              ),
-
-              // Parsed install result panel
-              Card(
-                elevation: 2,
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text('Last install (parsed):', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Text('Status: ${_lastParsedInstall?.status ?? 'n/a'}'),
-                      Text('Message: ${_lastParsedInstall?.message ?? 'n/a'}'),
-                      Text('ProfileId: ${_lastParsedInstall?.profileId ?? 'n/a'}'),
-                      const SizedBox(height: 8),
-                      const Text('Last install (raw payload):', style: TextStyle(fontWeight: FontWeight.bold)),
-                      const SizedBox(height: 8),
-                      Text(_lastRawInstallPayload != null ? const JsonEncoder.withIndent('  ').convert(_lastRawInstallPayload) : 'n/a'),
-                    ],
+                const SizedBox(height: 16),
+                const Text(
+                  'LPA String Example',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                SelectableText(_exampleLpa),
+                const SizedBox(height: 8),
+                OutlinedButton(
+                  onPressed: _fillExampleLpa,
+                  child: const Text('Use Example LPA'),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  key: const Key('lpaString'),
+                  controller: _lpaController,
+                  decoration: const InputDecoration(
+                    border: OutlineInputBorder(),
+                    labelText: 'LPA string',
+                    hintText: 'LPA:1\$SMDP.GSMA.COM\$ABC1234567890',
                   ),
                 ),
-              ),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: _installEsim,
+                  child: const Text('Install eSIM from LPA'),
+                ),
+                const SizedBox(height: 12),
+                Text('Status: $status'),
+                const SizedBox(height: 12),
 
-              const SizedBox(height: 12),
-              const Text('Logs:'),
-              SizedBox(
-                height: 200,
-                child: ListView.builder(
-                  reverse: true,
-                  itemCount: _logs.length,
-                  itemBuilder: (context, index) => Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 4.0, horizontal: 8.0),
-                    child: Text(_logs[index]),
+                // Parsed install result panel
+                Card(
+                  elevation: 2,
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text('Last install (parsed):', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        Text('Status: ${_lastParsedInstall?.status ?? 'n/a'}'),
+                        Text('Message: ${_lastParsedInstall?.message ?? 'n/a'}'),
+                        Text('ProfileId: ${_lastParsedInstall?.profileId ?? 'n/a'}'),
+                        const SizedBox(height: 8),
+                        const Text('Last install (raw payload):', style: TextStyle(fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 8),
+                        Text(_lastRawInstallPayload != null ? const JsonEncoder.withIndent('  ').convert(_lastRawInstallPayload) : 'n/a'),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 12),
+                const Text('Logs:'),
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 220,
+                  child: ListView.builder(
+                    reverse: true,
+                    itemCount: _logs.length,
+                    itemBuilder: (context, index) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 4.0),
+                      child: Text(_logs[index]),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

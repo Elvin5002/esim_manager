@@ -1,10 +1,14 @@
 # esim_manager_example
 
-Demonstrates how to use the esim_manager plugin.
+Demonstrates how to use the esim_manager plugin with a unified LPA install flow.
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
+This example app shows how to:
+
+- check eSIM support,
+- paste or autofill an LPA string,
+- launch system eSIM installation using `installEsim(lpa)`.
 
 A few resources to get you started if this is your first Flutter project:
 

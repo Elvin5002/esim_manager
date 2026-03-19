@@ -5,6 +5,93 @@ import Foundation
 // CoreTelephony APIs may be used if available at runtime.
 // We add them conditionally and use runtime checks to avoid compile/runtime issues on older SDKs.
 
+extension UIDevice {
+  var modelName: String {
+    var systemInfo = utsname()
+    uname(&systemInfo)
+    let machineMirror = Mirror(reflecting: systemInfo.machine)
+    let identifier = machineMirror.children.reduce("") { identifier, element in
+      guard let value = element.value as? Int8, value != 0 else { return identifier }
+      return identifier + String(UnicodeScalar(UInt8(value)))
+    }
+    return identifier
+  }
+}
+
+private func deviceSupportsEsim() -> Bool {
+    let model = UIDevice.current.modelName
+
+    let esimModels: [String] = [
+      // iPhone XS / XS Max / XR (2018)
+      "iPhone11,2", "iPhone11,4", "iPhone11,6", "iPhone11,8",
+
+      // iPhone 11 / 11 Pro / 11 Pro Max (2019)
+      "iPhone12,1", "iPhone12,3", "iPhone12,5",
+
+      // iPhone SE 2nd gen (2020)
+      "iPhone12,8",
+
+      // iPhone 12 mini / 12 / 12 Pro / 12 Pro Max (2020)
+      "iPhone13,1", "iPhone13,2", "iPhone13,3", "iPhone13,4",
+
+      // iPhone 13 mini / 13 / 13 Pro / 13 Pro Max (2021)
+      "iPhone14,2", "iPhone14,3", "iPhone14,4", "iPhone14,5",
+
+      // iPhone SE 3rd gen (2022)
+      "iPhone14,6",
+
+      // iPhone 14 / 14 Plus (2022)
+      "iPhone14,7", "iPhone14,8",
+
+      // iPhone 14 Pro / 14 Pro Max (2022)
+      "iPhone15,2", "iPhone15,3",
+
+      // iPhone 15 / 15 Plus (2023)
+      "iPhone15,4", "iPhone15,5",
+
+      // iPhone 15 Pro / 15 Pro Max (2023)
+      "iPhone16,1", "iPhone16,2",
+
+      // iPhone 16 / 16 Plus (2024)
+      "iPhone17,1", "iPhone17,2",
+
+      // iPhone 16 Pro / 16 Pro Max (2024)
+      "iPhone17,3", "iPhone17,4",
+
+      // iPad Pro 11-inch 3rd gen (2021)
+      "iPad13,4", "iPad13,5", "iPad13,6", "iPad13,7",
+
+      // iPad Pro 12.9-inch 5th gen (2021)
+      "iPad13,8", "iPad13,9", "iPad13,10", "iPad13,11",
+
+      // iPad Air 5th gen (2022)
+      "iPad13,16", "iPad13,17",
+
+      // iPad Pro 11-inch 4th gen (2022)
+      "iPad14,3", "iPad14,4",
+
+      // iPad Pro 12.9-inch 6th gen (2022)
+      "iPad14,5", "iPad14,6",
+
+      // iPad 10th gen (2022)
+      "iPad13,18", "iPad13,19",
+
+      // iPad Air 6th gen (2024)
+      "iPad14,8", "iPad14,9", "iPad14,10", "iPad14,11",
+
+      // iPad Pro 11-inch 5th gen M4 (2024)
+      "iPad16,3", "iPad16,4",
+
+      // iPad Pro 13-inch M4 (2024)
+      "iPad16,5", "iPad16,6",
+
+      // iPad mini 7th gen (2024)
+      "iPad16,1", "iPad16,2",
+    ]
+
+    return esimModels.contains(model)
+  }
+
 public class EsimManagerPlugin: NSObject, FlutterPlugin {
   private var channel: FlutterMethodChannel
 
@@ -24,21 +111,6 @@ public class EsimManagerPlugin: NSObject, FlutterPlugin {
     case "isEsimSupported":
       result(isEsimSupported())
 
-    case "installFromActivationCode":
-      guard let args = call.arguments as? [String: Any], let activationCode = args["activationCode"] as? String else {
-        result(["status": "failed", "message": "activationCode missing"])
-        return
-      }
-      installFromActivationCode(activationCode: activationCode, result: result)
-
-    case "installFromSmDp":
-      guard let args = call.arguments as? [String: Any], let smdpUrl = args["smdpUrl"] as? String else {
-        result(["status": "failed", "message": "smdpUrl missing"])
-        return
-      }
-      let confirmationCode = args["confirmationCode"] as? String
-      installFromSmDp(smdpUrl: smdpUrl, confirmationCode: confirmationCode, result: result)
-
     case "listProfiles":
       // iOS: retrieving installed eSIM profiles programmatically is limited; return empty list or not implemented.
       result([Any]())
@@ -53,8 +125,8 @@ public class EsimManagerPlugin: NSObject, FlutterPlugin {
     case "getPlatformVersion":
       result("iOS " + UIDevice.current.systemVersion)
 
-    case "installIosViaLpa":
-      guard let args = call.arguments as? [String: Any], let lpa = args["lpaString"] as? String else {
+    case "installEsim":
+      guard let args = call.arguments as? [String: Any], let lpa = args["lpa"] as? String ?? args["activationCode"] as? String ?? args["lpaString"] as? String else {
         result(false)
         return
       }
@@ -67,109 +139,10 @@ public class EsimManagerPlugin: NSObject, FlutterPlugin {
 
   private func isEsimSupported() -> Bool {
     if #available(iOS 12.1, *) {
-      // Check whether CTCellularPlanProvisioning class is available at runtime
-      return NSClassFromString("CTCellularPlanProvisioning") != nil
+      // Check whether CTCellularPlanProvisioning class is available at runtime and device supports eSIM
+      return NSClassFromString("CTCellularPlanProvisioning") != nil && deviceSupportsEsim()
     }
     return false
-  }
-
-  private func installFromActivationCode(activationCode: String, result: @escaping FlutterResult) {
-    guard isEsimSupported() else {
-      result(["status": "failed", "message": "eSIM not supported on this device or iOS version < 12.1"])
-      return
-    }
-
-    // Attempt to perform provisioning using CTCellularPlanProvisioning via runtime selectors so this code
-    // compiles against older SDKs and only runs when the classes/methods exist at runtime.
-    guard let provClass = NSClassFromString("CTCellularPlanProvisioning"),
-          let reqClass = NSClassFromString("CTCellularPlanProvisioningRequest") as? NSObject.Type else {
-      result(["status": "failed", "message": "CTCellularPlanProvisioning classes not available at runtime"])
-      return
-    }
-
-    // Build request using KVC (best-effort: set activationCode if supported)
-    let request = reqClass.init()
-    do {
-      try request.setValue(activationCode, forKey: "activationCode")
-    } catch {
-      // ignore if KVC is not supported — we'll still try to call addPlan
-    }
-
-    // Instantiate provisioning
-    let provisioning = (provClass as! NSObject.Type).init()
-
-    // Prepare to call addPlanWith:completionHandler:
-    let selector = NSSelectorFromString("addPlanWith:completionHandler:")
-    if provisioning.responds(to: selector) {
-      let block: @convention(block) (Bool, Any?) -> Void = { accepted, err in
-        var res: [String: Any] = [:]
-        if let error = err as? NSError {
-          res["status"] = "failed"
-          res["message"] = error.localizedDescription
-        } else {
-          res["status"] = accepted ? "success" : "failed"
-          res["message"] = accepted ? "user accepted" : "user declined"
-        }
-        // Send callback to Dart via method channel
-        self.channel.invokeMethod("onInstallResult", arguments: ["requestId": "ios:", "result": res])
-      }
-
-      let imp = provisioning.method(for: selector)
-      typealias Func = @convention(c) (AnyObject, Selector, AnyObject, @escaping @convention(block) (Bool, Any?) -> Void) -> Void
-      let f = unsafeBitCast(imp, to: Func.self)
-      f(provisioning, selector, request, block)
-
-      result(["status": "pending", "message": "started", "requestId": "ios:"])
-    } else {
-      result(["status": "failed", "message": "addPlanWith:completionHandler: not available on this iOS build"])
-    }
-  }
-
-  private func installFromSmDp(smdpUrl: String, confirmationCode: String?, result: @escaping FlutterResult) {
-    guard isEsimSupported() else {
-      result(["status": "failed", "message": "eSIM not supported on this device or iOS version < 12.1"])
-      return
-    }
-
-    guard let provClass = NSClassFromString("CTCellularPlanProvisioning"),
-          let reqClass = NSClassFromString("CTCellularPlanProvisioningRequest") as? NSObject.Type else {
-      result(["status": "failed", "message": "CTCellularPlanProvisioning classes not available at runtime"])
-      return
-    }
-
-    let request = reqClass.init()
-    // KVC: set SM‑DP address and confirmation code if supported
-    do {
-      try request.setValue(smdpUrl, forKey: "smdpAddress")
-      if let code = confirmationCode { try request.setValue(code, forKey: "confirmationCode") }
-    } catch {
-      // ignore if KVC not supported; still try to call addPlan
-    }
-
-    let provisioning = (provClass as! NSObject.Type).init()
-    let selector = NSSelectorFromString("addPlanWith:completionHandler:")
-    if provisioning.responds(to: selector) {
-      let block: @convention(block) (Bool, Any?) -> Void = { accepted, err in
-        var res: [String: Any] = [:]
-        if let error = err as? NSError {
-          res["status"] = "failed"
-          res["message"] = error.localizedDescription
-        } else {
-          res["status"] = accepted ? "success" : "failed"
-          res["message"] = accepted ? "user accepted" : "user declined"
-        }
-        self.channel.invokeMethod("onInstallResult", arguments: ["requestId": "ios:", "result": res])
-      }
-
-      let imp = provisioning.method(for: selector)
-      typealias Func = @convention(c) (AnyObject, Selector, AnyObject, @escaping @convention(block) (Bool, Any?) -> Void) -> Void
-      let f = unsafeBitCast(imp, to: Func.self)
-      f(provisioning, selector, request, block)
-
-      result(["status": "pending", "message": "started", "requestId": "ios:"])
-    } else {
-      result(["status": "failed", "message": "addPlanWith:completionHandler: not available on this iOS build"])
-    }
   }
 
   private func installIosViaLpa(lpaString: String, result: @escaping FlutterResult) {

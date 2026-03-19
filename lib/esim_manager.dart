@@ -20,12 +20,8 @@ class EsimManager {
     return EsimManagerPlatform.instance.listProfiles();
   }
 
-  Future<InstallResult> installFromActivationCode(String activationCode) {
-    return EsimManagerPlatform.instance.installFromActivationCode(activationCode);
-  }
-
-  Future<InstallResult> installFromSmDp(String smDpUrl, {String? confirmationCode}) {
-    return EsimManagerPlatform.instance.installFromSmDp(smDpUrl, confirmationCode: confirmationCode);
+  Future<bool> installEsim(String lpa) {
+    return EsimManagerPlatform.instance.installEsim(lpa);
   }
 
   Future<bool> removeProfile(String profileId) {

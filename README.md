@@ -10,9 +10,7 @@ on **Android** and **iOS** using official, system-supported provisioning flows.
 `esim_manager` allows you to:
 
 - Detect whether a device supports **eSIM**
-- Install eSIM profiles using:
-  - **Activation Codes** on Android
-  - **Apple LPA provisioning flow** on iOS
+- Install eSIM profiles using a single **LPA string** API on both Android and iOS
 - Listen to install result events for advanced integrations
 
 Designed for **travel eSIM apps**, **telecom providers**, **enterprise device onboarding**, and **carrier provisioning flows**.
@@ -22,8 +20,9 @@ Designed for **travel eSIM apps**, **telecom providers**, **enterprise device on
 ## 🚀 Features
 
 - 🔍 Check if the current device supports **eSIM**
-- 🤖 **Android** eSIM installation via `EuiccManager`
-- 🍎 **iOS** eSIM installation using Apple’s official **LPA UI**
+- 📲 Unified install API: `installEsim(lpa)`
+- 🤖 **Android** installation using system eSIM setup link
+- 🍎 **iOS** installation using Apple’s official **LPA UI**
 - 🔁 Stream-based install result callbacks
 - 🧩 Clean, platform-agnostic Dart API
 
@@ -44,7 +43,7 @@ Add the dependency to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  esim_manager: ^0.0.3
+  esim_manager: ^0.0.5
 ```
 
 Then run:
@@ -76,39 +75,20 @@ print('eSIM supported: $isSupported');
 
 ---
 
-### 🍎 Install eSIM on iOS (Recommended)
+### 📲 Install eSIM (Android + iOS)
 
-On iOS, eSIM installation **must use Apple’s system UI**.
-Provide a valid **LPA string**:
-
-```dart
-await EsimManager().installIosViaLpa(
-  'LPA:1$YOUR_SMDP_ADDRESS$YOUR_ACTIVATION_CODE',
-);
-```
-
-This will open the **native iOS eSIM installation screen**.
-
----
-
-### 🤖 Install eSIM on Android
+Use one API for both platforms with a valid LPA string:
 
 ```dart
 final esimManager = EsimManager();
 
-final isSupported = await esimManager.isEsimSupported();
-if (!isSupported) {
-  print('Device does not support eSIM');
-  return;
-}
+const lpa = 'LPA:1$YOUR_SMDP_ADDRESS$YOUR_ACTIVATION_CODE';
+final ok = await esimManager.installEsim(lpa);
 
-final result = await esimManager.installFromActivationCode(
-  'YOUR_ACTIVATION_CODE',
-);
-
-print('Status: ${result.status}');
-print('Message: ${result.message}');
+print('Installer opened: $ok');
 ```
+
+On iOS and Android, this opens the system eSIM installation flow.
 
 ---
 
@@ -134,7 +114,7 @@ Useful for:
 ## ⚠️ Notes & Limitations
 
 - iOS **does not allow silent eSIM installation**
-- Android installation may require **carrier or system privileges**
+- Android installation behavior can vary by OEM and OS implementation
 - Always test on **real devices** with eSIM support
 - Emulator / Simulator **does not support eSIM**
 
