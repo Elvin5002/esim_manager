@@ -43,7 +43,7 @@ Add the dependency to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  esim_manager: ^0.0.5
+  esim_manager: ^0.0.6
 ```
 
 Then run:
