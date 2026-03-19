@@ -42,9 +42,6 @@ class MockEsimManagerPlatform
   Stream<Map<String, dynamic>> get onInstallResult => Stream.empty();
 
   @override
-  Future<bool> installIosViaLpa(String lpaString) => Future.value(true);
-  
-  @override
   Stream<InstallEvent> get installEvents => Stream.empty();
   
   @override
@@ -52,6 +49,8 @@ class MockEsimManagerPlatform
 }
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   final EsimManagerPlatform initialPlatform = EsimManagerPlatform.instance;
 
   test('$MethodChannelEsimManager is the default instance', () {

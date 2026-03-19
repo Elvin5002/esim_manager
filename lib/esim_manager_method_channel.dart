@@ -18,7 +18,10 @@ class MethodChannelEsimManager extends EsimManagerPlatform {
     methodChannel.setMethodCallHandler(_handleMethodCall);
   }
 
+  @override
   Stream<Map<String, dynamic>> get onInstallResult => _installResultController.stream;
+
+  @override
   Stream<InstallEvent> get installEvents => _installEventController.stream;
 
   Future<void> _handleMethodCall(MethodCall call) async {
@@ -76,7 +79,7 @@ class MethodChannelEsimManager extends EsimManagerPlatform {
       );
       return result == true;
     } on PlatformException catch (e) {
-      print('eSIM install error: ${e.message}');
+      debugPrint('eSIM install error: ${e.message}');
       return false;
     }
   }

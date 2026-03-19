@@ -130,7 +130,7 @@ public class EsimManagerPlugin: NSObject, FlutterPlugin {
         result(false)
         return
       }
-      installIosViaLpa(lpaString: lpa, result: result)
+      installEsimViaLpa(lpaString: lpa, result: result)
 
     default:
       result(FlutterMethodNotImplemented)
@@ -145,7 +145,7 @@ public class EsimManagerPlugin: NSObject, FlutterPlugin {
     return false
   }
 
-  private func installIosViaLpa(lpaString: String, result: @escaping FlutterResult) {
+  private func installEsimViaLpa(lpaString: String, result: @escaping FlutterResult) {
     // Construct Apple's official LPA provisioning URL
     let encoded = lpaString.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? lpaString
     let urlString = "https://esimsetup.apple.com/esim_qrcode_provisioning?carddata=\(encoded)"

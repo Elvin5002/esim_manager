@@ -25,11 +25,7 @@ void main() {
               {'id': 'p1', 'iccid': 'iccid1', 'eid': 'eid1', 'nickname': 'Work', 'isActive': true},
               {'id': 'p2', 'iccid': 'iccid2', 'eid': 'eid2', 'nickname': 'Travel', 'isActive': false},
             ];
-          case 'installFromActivationCode':
-            return {'status': 'success', 'message': 'ok', 'profileId': 'p3'};
-          case 'installFromSmDp':
-            return {'status': 'pending', 'message': 'in progress', 'profileId': null};
-          case 'installIosViaLpa':
+          case 'installEsim':
             // Simulate that the system accepted opening the URL on iOS
             return true;
           case 'removeProfile':
@@ -46,7 +42,9 @@ void main() {
   test('install result callback is received via stream', () async {
     final completer = Completer<Map<String, dynamic>>();
     platform.onInstallResult.listen((event) {
-      completer.complete(event);
+      if (!completer.isCompleted) {
+        completer.complete(event);
+      }
     });
 
     // Simulate platform calling back with install result
@@ -64,7 +62,9 @@ void main() {
   test('install event stream yields parsed InstallEvent', () async {
     final completer = Completer<InstallEvent>();
     platform.installEvents.listen((event) {
-      completer.complete(event);
+      if (!completer.isCompleted) {
+        completer.complete(event);
+      }
     });
 
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.handlePlatformMessage(
@@ -97,8 +97,8 @@ void main() {
     expect(profiles.first.isActive, isTrue);
   });
 
-  test('installIosViaLpa returns true (simulated)', () async {
-    final launched = await platform.installIosViaLpa('some-lpa-string');
+  test('installEsim returns true (simulated)', () async {
+    final launched = await platform.installEsim('LPA:1\$SMDP.GSMA.COM\$CODE');
     expect(launched, isTrue);
   });
 

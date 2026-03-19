@@ -37,10 +37,5 @@ class EsimManager {
 
   /// Typed install events that wrap parsed [InstallResult] with raw payload and request id.
   Stream<InstallEvent> get installEvents => EsimManagerPlatform.instance.installEvents;
-
-  /// Open Apple's LPA provisioning URL on iOS using an encoded LPA string.
-  /// Returns true if the OS was asked to open the URL (may be false on non-iOS platforms).
-  Future<bool> installIosViaLpa(String lpaString) {
-    return EsimManagerPlatform.instance.installIosViaLpa(lpaString);
-  }
 }
+

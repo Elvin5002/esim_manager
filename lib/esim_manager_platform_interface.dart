@@ -189,12 +189,6 @@ abstract class EsimManagerPlatform extends PlatformInterface {
     throw UnimplementedError('installEvents() has not been implemented.');
   }
 
-  /// Installs iOS eSIM via Apple LPA URL (LPA string). Returns true if the system URL was opened successfully.
-  /// This is a convenience for opening Apple's official LPA provisioning URL.
-  Future<bool> installIosViaLpa(String lpaString) {
-    throw UnimplementedError('installIosViaLpa() has not been implemented.');
-  }
-
   /// Existing helper kept for backwards compatibility.
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
