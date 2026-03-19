@@ -1,3 +1,6 @@
+## 0.0.6
+- Fixed some issues Android side
+
 ## 0.0.5
 - Unified install API to `installEsim(lpa)` across Android and iOS
 - Android native install now accepts `lpa` argument and opens system eSIM setup link
