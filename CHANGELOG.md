@@ -1,3 +1,8 @@
+## 0.1.0
+- Added Swift Package Manager support for iOS via `ios/Package.swift`
+- Updated iOS eSIM device support list with latest iPhone 16 / 16 Pro / 17 generation model identifiers
+- Improved compatibility for future Flutter iOS plugin SPM enforcement
+
 ## 0.0.6
 - Fixed some issues Android side
 

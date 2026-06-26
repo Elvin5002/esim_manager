@@ -55,8 +55,11 @@ private func deviceSupportsEsim() -> Bool {
       // iPhone 16 / 16 Plus (2024)
       "iPhone17,1", "iPhone17,2",
 
-      // iPhone 16 Pro / 16 Pro Max (2024)
-      "iPhone17,3", "iPhone17,4",
+      // iPhone 16 Pro / 16 Pro Max / 16e (2024)
+      "iPhone17,3", "iPhone17,4", "iPhone17,5",
+
+      // iPhone 17 Pro / iPhone 17 Pro Max / iPhone 17 / iPhone Air / iPhone 17e
+      "iPhone18,1", "iPhone18,2", "iPhone18,3", "iPhone18,4", "iPhone18,5",
 
       // iPad Pro 11-inch 3rd gen (2021)
       "iPad13,4", "iPad13,5", "iPad13,6", "iPad13,7",
