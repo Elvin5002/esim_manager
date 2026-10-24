@@ -1,4 +1,3 @@
-import 'package:esim_manager/esim_manager_platform_interface.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:convert';
@@ -100,13 +99,11 @@ class _MyAppState extends State<MyApp> {
     }
 
     setState(() => status = 'Starting install…');
-    final ok = await _esimManagerPlugin.installEsim(lpa);
+    final result = await _esimManagerPlugin.installEsim(lpa);
     setState(() {
-      status = ok
-          ? 'Installer opened successfully'
-          : 'Failed to open installer';
+      status = 'Install status: ${result.status.name}';
     });
-    addLog('installEsim(lpa) => $ok');
+    addLog('installEsim(lpa) => status: ${result.status}, message: ${result.message}');
   }
 
   void _fillExampleLpa() {

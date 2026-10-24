@@ -97,9 +97,9 @@ void main() {
     expect(profiles.first.isActive, isTrue);
   });
 
-  test('installEsim returns true (simulated)', () async {
-    final launched = await platform.installEsim('LPA:1\$SMDP.GSMA.COM\$CODE');
-    expect(launched, isTrue);
+  test('installEsim returns success InstallResult (simulated)', () async {
+    final result = await platform.installEsim('LPA:1\$SMDP.GSMA.COM\$CODE');
+    expect(result.status, InstallStatus.success);
   });
 
   test('removeProfile returns true', () async {

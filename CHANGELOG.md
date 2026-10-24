@@ -1,3 +1,9 @@
+## 0.1.1
+- Upgraded `installEsim` to return structured `InstallResult` (`success`, `failed`, `pending`) instead of a boolean
+- Added input validation for LPA strings in `installEsim`
+- Enforced strict Dart and native encapsulation (exported public models, kept platform internals private)
+- Fixed example app compilation and updated it to consume `InstallResult`
+
 ## 0.1.0
 - Added Swift Package Manager support for iOS via `ios/Package.swift`
 - Updated iOS eSIM device support list with latest iPhone 16 / 16 Pro / 17 generation model identifiers

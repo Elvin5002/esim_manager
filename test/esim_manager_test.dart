@@ -45,7 +45,7 @@ class MockEsimManagerPlatform
   Stream<InstallEvent> get installEvents => Stream.empty();
   
   @override
-  Future<bool> installEsim(String lpa) => Future.value(true);
+  Future<InstallResult> installEsim(String lpa) => Future.value(InstallResult(status: InstallStatus.success, message: 'ok'));
 }
 
 void main() {
@@ -88,6 +88,14 @@ void main() {
     MockEsimManagerPlatform fakePlatform = MockEsimManagerPlatform();
     EsimManagerPlatform.instance = fakePlatform;
 
-    expect(await esimManagerPlugin.installEsim('test-activation-code'), isTrue);
+    final result = await esimManagerPlugin.installEsim('test-activation-code');
+    expect(result.status, InstallStatus.success);
+  });
+
+  test('installEsim validates empty lpa', () async {
+    EsimManager esimManagerPlugin = EsimManager();
+    final result = await esimManagerPlugin.installEsim('   ');
+    expect(result.status, InstallStatus.failed);
+    expect(result.message, 'LPA string cannot be empty');
   });
 }

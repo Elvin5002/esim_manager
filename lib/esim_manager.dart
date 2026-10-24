@@ -7,6 +7,8 @@
 
 import 'esim_manager_platform_interface.dart';
 
+export 'esim_manager_platform_interface.dart' show EsimProfile, InstallResult, InstallStatus, InstallEvent;
+
 class EsimManager {
   Future<String?> getPlatformVersion() {
     return EsimManagerPlatform.instance.getPlatformVersion();
@@ -20,7 +22,10 @@ class EsimManager {
     return EsimManagerPlatform.instance.listProfiles();
   }
 
-  Future<bool> installEsim(String lpa) {
+  Future<InstallResult> installEsim(String lpa) {
+    if (lpa.trim().isEmpty) {
+      return Future.value(InstallResult(status: InstallStatus.failed, message: 'LPA string cannot be empty'));
+    }
     return EsimManagerPlatform.instance.installEsim(lpa);
   }
 

@@ -71,16 +71,26 @@ class MethodChannelEsimManager extends EsimManagerPlatform {
   }
 
   @override
-  Future<bool> installEsim(String lpa) async {
+  Future<InstallResult> installEsim(String lpa) async {
+    if (lpa.trim().isEmpty) {
+      return InstallResult(status: InstallStatus.failed, message: 'LPA string cannot be empty');
+    }
     try {
-      final result = await methodChannel.invokeMethod<bool>(
+      final result = await methodChannel.invokeMethod<dynamic>(
         'installEsim',
         <String, dynamic>{'lpa': lpa},
       );
-      return result == true;
+      if (result is Map) {
+        return InstallResult.fromPlatformPayload(result);
+      }
+      final success = result == true;
+      return InstallResult(
+        status: success ? InstallStatus.success : InstallStatus.failed,
+        message: success ? 'Installer launched successfully' : 'Failed to launch installer',
+      );
     } on PlatformException catch (e) {
       debugPrint('eSIM install error: ${e.message}');
-      return false;
+      return InstallResult(status: InstallStatus.failed, message: e.message);
     }
   }
 

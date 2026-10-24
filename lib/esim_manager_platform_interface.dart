@@ -164,7 +164,7 @@ abstract class EsimManagerPlatform extends PlatformInterface {
   /// Installs an eSIM profile.
   /// On Android: lpa is the LPA code/string
   /// On iOS: lpa is the LPA code/string for universal link provisioning
-  Future<bool> installEsim(String lpa) {
+  Future<InstallResult> installEsim(String lpa) {
     throw UnimplementedError('installEsim() has not been implemented.');
   }
 

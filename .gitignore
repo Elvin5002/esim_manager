@@ -31,3 +31,26 @@ migrate_working_dir/
 .flutter-plugins-dependencies
 /build/
 /coverage/
+
+
+# Secrets and environment files
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.pfx
+*.key
+
+# Android signing
+*.jks
+*.keystore
+key.properties
+
+# Local machine configuration
+local.properties
+
+# Service account credentials
+service-account*.json
+*service-account*.json
+
